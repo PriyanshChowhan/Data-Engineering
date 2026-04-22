@@ -1,0 +1,84 @@
+@import url("https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=Space+Grotesk:wght@400;500;700&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --canvas: #f8f6f0;
+  --panel: rgba(255, 255, 255, 0.82);
+  --panel-strong: #ffffff;
+  --ink: #172033;
+  --muted: #667085;
+  --line: rgba(23, 32, 51, 0.08);
+  --accent: #d5794b;
+  --accent-strong: #a54b20;
+  --teal: #0e7490;
+  --olive: #4d6b3f;
+  --soft: #efe7da;
+  --code: #1e1e1e;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  font-family: "Space Grotesk", sans-serif;
+  background: var(--canvas);
+  color: var(--ink);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(23, 32, 51, 0.18);
+  border-radius: 999px;
+}
+
+@layer components {
+  .panel {
+    @apply rounded-[28px] border border-[var(--line)] bg-[var(--panel)] shadow-panel backdrop-blur-xl;
+  }
+
+  .panel-soft {
+    @apply rounded-[24px] border border-[var(--line)] bg-white/70;
+  }
+
+  .eyebrow {
+    @apply text-xs font-semibold uppercase tracking-[0.3em] text-[var(--accent-strong)];
+  }
+
+  .stat-chip {
+    @apply inline-flex items-center rounded-full border border-[var(--line)] bg-white/80 px-3 py-1 text-xs font-semibold text-[var(--ink)];
+  }
+
+  .status-badge {
+    @apply inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold capitalize;
+  }
+
+  .button-primary {
+    @apply inline-flex items-center justify-center rounded-2xl bg-[var(--accent)] px-4 py-2.5 text-sm font-semibold text-white transition hover:brightness-95;
+  }
+
+  .button-secondary {
+    @apply inline-flex items-center justify-center rounded-2xl border border-[var(--line)] bg-white/80 px-4 py-2.5 text-sm font-semibold text-[var(--ink)] transition hover:bg-white;
+  }
+
+  .field {
+    @apply w-full rounded-2xl border border-[var(--line)] bg-white/80 px-4 py-3 text-sm text-[var(--ink)] outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[rgba(213,121,75,0.18)];
+  }
+
+  .skeleton {
+    @apply animate-pulse rounded-3xl bg-white/60;
+  }
+}
