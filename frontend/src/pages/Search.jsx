@@ -15,7 +15,7 @@ const initialFilters = {
 export default function Search() {
   const [filters, setFilters] = useState(initialFilters);
   const [results, setResults] = useState([]);
-  const [meta, setMeta] = useState({ result_count: 0, execution_time_ms: 0 });
+  const [meta, setMeta] = useState({ result_count: 0 });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [hasSearched, setHasSearched] = useState(false);
@@ -35,8 +35,7 @@ export default function Search() {
 
       setResults(response.data);
       setMeta({
-        result_count: response.result_count,
-        execution_time_ms: response.execution_time_ms
+        result_count: response.result_count
       });
     } catch (requestError) {
       setError(requestError.response?.data?.message || "Failed to run text search.");
@@ -139,7 +138,6 @@ export default function Search() {
         <section className="space-y-5">
           <div className="flex flex-wrap items-center gap-3">
             <span className="stat-chip">{meta.result_count} matches</span>
-            <span className="stat-chip">Executed in {meta.execution_time_ms}ms</span>
             <span className="inline-flex items-center gap-2 rounded-full bg-[rgba(213,121,75,0.12)] px-3 py-1 text-xs font-semibold text-[var(--accent-strong)]">
               <Sparkles size={14} />
               Query: {filters.q || "browse all"}

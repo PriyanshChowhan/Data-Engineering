@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
-import { Check, Database, Play, RotateCcw, Sparkles } from "lucide-react";
+import { Check, Database, Play, RotateCcw } from "lucide-react";
 import { propertiesApi } from "../api";
 import CodeBlock from "../components/CodeBlock";
 import PropertyCard from "../components/PropertyCard";
 import { amenities, cities, propertyStatuses, propertyTypes } from "../constants/options";
-import { formatCompactCurrency } from "../utils/formatters";
+import { formatCompactCurrency, formatNumber } from "../utils/formatters";
 
 const budgetOptions = [
   { label: "50L", value: 5000000 },
@@ -33,41 +33,6 @@ const emptyFilters = {
   minBedrooms: null,
   amenities: []
 };
-
-const presetQueries = [
-  {
-    id: "metro-budget",
-    label: "Metro value hunt",
-    description: "Mumbai + Delhi under 2Cr with 3+ bedrooms",
-    filters: featuredFilters
-  },
-  {
-    id: "ready-rent",
-    label: "Ready-to-rent",
-    description: "Available apartments with parking and security",
-    filters: {
-      city: [],
-      type: ["apartment"],
-      status: ["available"],
-      maxPrice: 30000000,
-      minBedrooms: 2,
-      amenities: ["parking", "security"]
-    }
-  },
-  {
-    id: "family-villas",
-    label: "Family villas",
-    description: "Bangalore + Pune villas with 4+ bedrooms",
-    filters: {
-      city: ["Bangalore", "Pune"],
-      type: ["villa"],
-      status: [],
-      maxPrice: null,
-      minBedrooms: 4,
-      amenities: []
-    }
-  }
-];
 
 const cloneFilters = (filters) => ({
   city: [...filters.city],
@@ -214,64 +179,14 @@ export default function Properties() {
     setAppliedFilters(cleared);
   };
 
-  const applyPreset = (filters) => {
-    const next = cloneFilters(filters);
-    setDraftFilters(next);
-    setPage(1);
-    setAppliedFilters(next);
-  };
-
   return (
-    <div className="space-y-6">
-      <section className="panel overflow-hidden p-6">
-        <div className="flex flex-wrap items-start justify-between gap-6">
-          <div className="max-w-3xl">
-            <p className="eyebrow">Live Query Explorer</p>
-            <h1 className="mt-2 font-display text-4xl text-[var(--ink)]">
-              Pick filters, run the query, and see both the exact statement and the matching
-              properties together.
-            </h1>
-            <p className="mt-4 text-sm leading-7 text-[var(--muted)]">
-              Start with values like Mumbai, Delhi, or 2Cr, then run the query to inspect the
-              executed filter and browse the result set below.
-            </p>
-          </div>
-
-          <div className="rounded-[28px] bg-[linear-gradient(135deg,_rgba(213,121,75,0.18),_rgba(14,116,144,0.16))] px-5 py-4 text-sm text-[var(--ink)]">
-            <p className="font-semibold">Current query</p>
-            <p className="mt-2 max-w-sm leading-6 text-[var(--muted)]">
-              {buildHeadline(appliedFilters)}
-            </p>
-          </div>
-        </div>
-
-        <div className="mt-6 grid gap-3 lg:grid-cols-3">
-          {presetQueries.map((preset) => (
-            <button
-              key={preset.id}
-              type="button"
-              onClick={() => applyPreset(preset.filters)}
-              className="rounded-[24px] border border-[var(--line)] bg-white/72 p-4 text-left transition hover:bg-white"
-            >
-              <p className="text-sm font-semibold text-[var(--ink)]">{preset.label}</p>
-              <p className="mt-2 text-sm leading-6 text-[var(--muted)]">{preset.description}</p>
-            </button>
-          ))}
-        </div>
-      </section>
-
-      <div className="grid gap-6 xl:grid-cols-[360px_minmax(0,1fr)]">
+    <div className="grid gap-6 xl:grid-cols-[360px_minmax(0,1fr)]">
         <aside className="panel h-fit p-6">
-          <div className="flex items-center gap-3">
-            <div className="rounded-2xl bg-[rgba(213,121,75,0.12)] p-3 text-[var(--accent-strong)]">
-              <Sparkles size={18} />
-            </div>
-            <div>
-              <p className="eyebrow">Filter Builder</p>
-              <h2 className="mt-1 text-xl font-semibold text-[var(--ink)]">
-                Build a property query with checkboxes
-              </h2>
-            </div>
+          <div>
+            <p className="eyebrow">Property Explorer</p>
+            <h2 className="mt-2 text-2xl font-semibold text-[var(--ink)]">
+              Build a property query with checkboxes
+            </h2>
           </div>
 
           <div className="mt-6 space-y-6">
@@ -382,11 +297,11 @@ export default function Properties() {
         </aside>
 
         <section className="space-y-6">
-          <div className="panel p-6">
+          <div className="rounded-[24px] border border-[var(--line)] bg-white p-6 shadow-sm">
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div>
                 <div className="flex items-center gap-3">
-                  <div className="rounded-2xl bg-[rgba(14,116,144,0.12)] p-3 text-[var(--teal)]">
+                  <div className="rounded-2xl bg-[rgba(15,23,42,0.04)] p-3 text-[var(--ink)]">
                     <Database size={18} />
                   </div>
                   <div>
@@ -399,8 +314,7 @@ export default function Properties() {
               </div>
 
               <div className="flex flex-wrap gap-2">
-                <span className="stat-chip">{response.result_count || 0} matches</span>
-                <span className="stat-chip">{response.execution_time_ms || 0}ms</span>
+                <span className="stat-chip">{formatNumber(response.result_count || 0)} matches</span>
                 <span className="stat-chip">
                   Page {response.pagination?.page || 1} / {response.pagination?.totalPages || 1}
                 </span>
@@ -472,7 +386,6 @@ export default function Properties() {
             </>
           )}
         </section>
-      </div>
     </div>
   );
 }

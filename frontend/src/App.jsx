@@ -16,7 +16,7 @@ export default function App() {
           <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.35em] text-[var(--accent-strong)]">
-                Property Intelligence
+                Portfolio Overview
               </p>
               <h1 className="font-display text-2xl text-[var(--ink)]">
                 Real-Estate Investment & Rental Profitability Tracker

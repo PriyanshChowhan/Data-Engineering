@@ -10,8 +10,7 @@ const unwrap = async (request) => {
 };
 
 export const dashboardApi = {
-  getStats: () => unwrap(api.get("/dashboard/stats")),
-  getAnalytics: () => unwrap(api.get("/dashboard/analytics"))
+  getStats: () => unwrap(api.get("/dashboard/stats"))
 };
 
 export const propertiesApi = {
@@ -23,17 +22,10 @@ export const propertiesApi = {
   remove: (id) => unwrap(api.delete(`/properties/${id}`))
 };
 
-export const rentalsApi = {
-  list: (params) => unwrap(api.get("/rentals", { params })),
-  getById: (id) => unwrap(api.get(`/rentals/${id}`)),
-  create: (payload) => unwrap(api.post("/rentals", payload)),
-  addPayment: (id, payload) => unwrap(api.put(`/rentals/${id}/payment`, payload)),
-  addMaintenance: (id, payload) => unwrap(api.put(`/rentals/${id}/maintenance`, payload))
-};
-
 export const queriesApi = {
   list: () => unwrap(api.get("/queries")),
-  run: (queryId) => unwrap(api.get(`/queries/${queryId}`))
+  run: (queryId) => unwrap(api.get(`/queries/${queryId}`)),
+  insights: () => unwrap(api.get("/queries/insights"))
 };
 
 export default api;

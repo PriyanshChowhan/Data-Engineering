@@ -1,40 +1,179 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
-  Bar,
-  BarChart,
-  CartesianGrid,
-  Cell,
-  Legend,
-  Line,
-  LineChart,
-  Pie,
-  PieChart,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis
-} from "recharts";
-import { Building2, ChartColumnIncreasing, IndianRupee, KeyRound } from "lucide-react";
-import { dashboardApi } from "../api";
+  Building2,
+  ChartColumnIncreasing,
+  ChevronDown,
+  ChevronUp,
+  IndianRupee,
+  KeyRound,
+  Wrench
+} from "lucide-react";
+import { dashboardApi, queriesApi } from "../api";
 import MetricCard from "../components/MetricCard";
-import ChartCard from "../components/charts/ChartCard";
-import CustomTooltip from "../components/charts/CustomTooltip";
 import { formatCompactCurrency, formatNumber } from "../utils/formatters";
 
-const pieColors = ["#d5794b", "#0e7490", "#4d6b3f", "#9f1239", "#7c3aed"];
+const conceptLabels = {
+  Q1: "Opportunity Filter",
+  Q2: "Metro Availability",
+  Q8: "Text Search",
+  Q18: "High Appreciation",
+  Q19: "Maintenance Risk",
+  Q20: "Market Strength",
+  Q9: "Budget Watch"
+};
+
+const buildInsightSummary = (insight) => {
+  const firstResult = insight.results?.find((item) => item && !item.operation);
+
+  switch (insight.query_id) {
+    case "Q1":
+      return `${insight.result_count} premium unsold opportunities in Mumbai or Delhi below Rs 2Cr with 3+ bedrooms.`;
+    case "Q2":
+      return `${insight.result_count} apartments and villas remain available across the top metro shortlist.`;
+    case "Q8":
+      return `${insight.result_count} furnished premium listings surfaced by keyword relevance.`;
+    case "Q18":
+      if (firstResult?.location?.city) {
+        return `High-ROI shortlist led by ${firstResult.location.city}, with ${firstResult.investment_details?.appreciation_percent}% appreciation at the top.`;
+      }
+      return `${insight.result_count} high-ROI available apartments identified across major cities.`;
+    case "Q19":
+      return `${insight.result_count} rentals currently show unresolved high-priority maintenance above Rs 3,000.`;
+    case "Q20":
+      if (firstResult?.city) {
+        return `${insight.result_count} premium market zones meet both yield and rent-threshold conditions, led by ${firstResult.city}.`;
+      }
+      return `${insight.result_count} premium market zones qualify on both yield and rent activity.`;
+    case "Q9":
+      return `${insight.result_count} under-maintenance properties would receive a renovation budget uplift if actioned today.`;
+    default:
+      return insight.description;
+  }
+};
+
+const buildInsightSubtext = (insight) => {
+  const firstResult = insight.results?.find((item) => item && !item.operation);
+
+  switch (insight.query_id) {
+    case "Q2":
+      return firstResult?.title || "Metro-ready inventory";
+    case "Q18":
+      return firstResult?.title || "Available apartment shortlist";
+    case "Q19":
+      return "Pending operational risk across the active rental base";
+    case "Q20":
+      return firstResult ? `${firstResult.area}, ${firstResult.city}` : "Premium demand pockets";
+    case "Q8":
+      return firstResult?.title || "Keyword-ranked discovery set";
+    case "Q9":
+      return "Operational budget scenario";
+    default:
+      return insight.query_name;
+  }
+};
+
+function InsightCard({ insight }) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <div className="rounded-[24px] border border-[var(--line)] bg-white p-5 shadow-sm">
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <span className="rounded-full bg-[rgba(15,23,42,0.04)] px-3 py-1 text-xs font-semibold text-[var(--muted)]">
+            {conceptLabels[insight.query_id] || "Portfolio Insight"}
+          </span>
+          <p className="mt-4 text-base font-semibold leading-7 text-[var(--ink)]">
+            {buildInsightSummary(insight)}
+          </p>
+          <p className="mt-2 text-sm text-[var(--muted)]">{buildInsightSubtext(insight)}</p>
+        </div>
+      </div>
+
+      <div className="mt-5 flex items-center justify-between border-t border-[var(--line)] pt-4">
+        <span className="rounded-full bg-[rgba(14,116,144,0.08)] px-3 py-1 text-xs font-semibold text-[var(--teal)]">
+          {insight.result_count} results
+        </span>
+        <button
+          type="button"
+          onClick={() => setOpen((value) => !value)}
+          className="inline-flex items-center gap-2 text-sm font-medium text-[var(--muted)]"
+        >
+          Query used
+          {open ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+        </button>
+      </div>
+
+      {open && (
+        <pre className="mt-4 overflow-x-auto rounded-[20px] bg-[rgba(15,23,42,0.96)] p-4 font-mono text-xs leading-6 text-slate-100">
+          {insight.mongo_query_string}
+        </pre>
+      )}
+    </div>
+  );
+}
 
 export default function Dashboard() {
-  const [data, setData] = useState(null);
+  const [stats, setStats] = useState(null);
+  const [insights, setInsights] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+
+  const snapshotCards = useMemo(() => {
+    if (!stats) {
+      return [];
+    }
+
+    return [
+      {
+        title: "Available Inventory",
+        value: formatNumber(stats.available),
+        subtitle: "Ready for immediate review",
+        icon: Building2
+      },
+      {
+        title: "Rented Properties",
+        value: formatNumber(stats.rented),
+        subtitle: "Income-generating assets",
+        icon: KeyRound
+      },
+      {
+        title: "Open Maintenance",
+        value: formatNumber(stats.open_maintenance_requests),
+        subtitle: "Operational items needing attention",
+        icon: Wrench
+      },
+      {
+        title: "Average Rent",
+        value: formatCompactCurrency(stats.avg_rent),
+        subtitle: "Portfolio-wide monthly baseline",
+        icon: IndianRupee
+      },
+      {
+        title: "Under Maintenance",
+        value: formatNumber(stats.under_maintenance),
+        subtitle: "Assets in active upkeep",
+        icon: Wrench
+      },
+      {
+        title: "Sold",
+        value: formatNumber(stats.sold),
+        subtitle: "Completed exits on record",
+        icon: ChartColumnIncreasing
+      }
+    ];
+  }, [stats]);
 
   const loadDashboard = async () => {
     setLoading(true);
     setError("");
 
     try {
-      const response = await dashboardApi.getStats();
-      setData(response);
+      const [statsResponse, insightsResponse] = await Promise.all([
+        dashboardApi.getStats(),
+        queriesApi.insights()
+      ]);
+      setStats(statsResponse);
+      setInsights(insightsResponse.data);
     } catch (requestError) {
       setError(requestError.response?.data?.message || "Failed to load dashboard data.");
     } finally {
@@ -54,11 +193,16 @@ export default function Dashboard() {
             <div key={index} className="skeleton h-36" />
           ))}
         </div>
-        <div className="grid gap-6 xl:grid-cols-2">
-          <div className="skeleton h-[420px]" />
-          <div className="skeleton h-[420px]" />
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          {Array.from({ length: 6 }).map((_, index) => (
+            <div key={index} className="skeleton h-40" />
+          ))}
         </div>
-        <div className="skeleton h-[420px]" />
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          {Array.from({ length: 7 }).map((_, index) => (
+            <div key={index} className="skeleton h-56" />
+          ))}
+        </div>
       </div>
     );
   }
@@ -76,18 +220,18 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6">
-      <section className="panel overflow-hidden p-6">
+      <section className="rounded-[28px] border border-[var(--line)] bg-white p-6 shadow-sm">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
             <p className="eyebrow">Portfolio Command Center</p>
             <h2 className="mt-2 font-display text-4xl text-[var(--ink)]">
-              Measure supply, rent flow, and appreciation across the portfolio.
+              Stay close to what matters across pricing, income, and portfolio risk.
             </h2>
           </div>
-          <div className="rounded-[24px] bg-[linear-gradient(135deg,_rgba(213,121,75,0.18),_rgba(14,116,144,0.18))] px-5 py-4 text-sm text-[var(--ink)]">
-            <p className="font-semibold">Live portfolio metrics</p>
-            <p className="mt-1 text-[var(--muted)]">
-              Properties: {data.total_properties} | Active rentals: {data.active_rentals}
+          <div className="rounded-[20px] border border-[var(--line)] bg-[rgba(15,23,42,0.02)] px-5 py-4 text-sm text-[var(--muted)]">
+            <p className="font-semibold text-[var(--ink)]">Portfolio at a glance</p>
+            <p className="mt-1">
+              {stats.total_properties} properties | {stats.active_rentals} active rentals
             </p>
           </div>
         </div>
@@ -96,110 +240,70 @@ export default function Dashboard() {
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <MetricCard
           title="Total Properties"
-          value={formatNumber(data.total_properties)}
-          subtitle={`${data.available} currently available`}
+          value={formatNumber(stats.total_properties)}
+          subtitle={`${stats.available} currently available`}
           icon={Building2}
-          accent="#d5794b"
+          accent="#b96a41"
         />
         <MetricCard
           title="Active Rentals"
-          value={formatNumber(data.active_rentals)}
-          subtitle={`${data.rented} properties marked rented`}
+          value={formatNumber(stats.active_rentals)}
+          subtitle={`${stats.rented} properties marked rented`}
           icon={KeyRound}
-          accent="#0e7490"
+          accent="#336b75"
         />
         <MetricCard
           title="Monthly Income"
-          value={formatCompactCurrency(data.total_monthly_income)}
-          subtitle={`Average rent ${formatCompactCurrency(data.avg_rent)}`}
+          value={formatCompactCurrency(stats.total_monthly_income)}
+          subtitle={`Average rent ${formatCompactCurrency(stats.avg_rent)}`}
           icon={IndianRupee}
-          accent="#4d6b3f"
+          accent="#627652"
         />
         <MetricCard
           title="Avg Appreciation"
-          value={`${data.avg_appreciation}%`}
-          subtitle={`${data.sold} sold properties recorded`}
+          value={`${stats.avg_appreciation}%`}
+          subtitle={`${stats.sold} sold properties recorded`}
           icon={ChartColumnIncreasing}
-          accent="#9f1239"
+          accent="#93544a"
         />
       </section>
 
-      <section className="grid gap-6 xl:grid-cols-2">
-        <ChartCard title="Property Count by City" subtitle="Top portfolio markets by inventory size">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={data.top_cities}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-              <XAxis dataKey="city" tick={{ fill: "#475467", fontSize: 12 }} />
-              <YAxis tick={{ fill: "#475467", fontSize: 12 }} />
-              <Tooltip content={<CustomTooltip />} />
-              <Bar dataKey="count" fill="#d5794b" radius={[10, 10, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
-        </ChartCard>
+      <section className="space-y-4">
+        <div>
+          <p className="eyebrow">Portfolio Snapshot</p>
+          <h3 className="mt-2 text-2xl font-semibold text-[var(--ink)]">
+            Quiet, useful numbers for the day-to-day view
+          </h3>
+        </div>
 
-        <ChartCard title="Property Type Distribution" subtitle="A quick view of the property mix">
-          <ResponsiveContainer width="100%" height="100%">
-            <PieChart>
-              <Pie
-                data={data.property_type_distribution}
-                dataKey="count"
-                nameKey="type"
-                innerRadius={72}
-                outerRadius={112}
-                paddingAngle={4}
-              >
-                {data.property_type_distribution.map((entry, index) => (
-                  <Cell key={entry.type} fill={pieColors[index % pieColors.length]} />
-                ))}
-              </Pie>
-              <Tooltip content={<CustomTooltip />} />
-              <Legend />
-            </PieChart>
-          </ResponsiveContainer>
-        </ChartCard>
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          {snapshotCards.map((item) => (
+            <div key={item.title} className="rounded-[24px] border border-[var(--line)] bg-white p-5 shadow-sm">
+              <div className="flex items-center justify-between">
+                <p className="text-sm font-medium text-[var(--muted)]">{item.title}</p>
+                <div className="rounded-2xl bg-[rgba(15,23,42,0.04)] p-3 text-[var(--ink)]">
+                  <item.icon size={18} />
+                </div>
+              </div>
+              <p className="mt-5 text-3xl font-bold text-[var(--ink)]">{item.value}</p>
+              <p className="mt-2 text-sm text-[var(--muted)]">{item.subtitle}</p>
+            </div>
+          ))}
+        </div>
       </section>
 
-      <section className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
-        <ChartCard title="Monthly Rental Income" subtitle="Last 12 recorded months from payment history">
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={data.monthly_rental_income}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-              <XAxis dataKey="month" tick={{ fill: "#475467", fontSize: 12 }} />
-              <YAxis tick={{ fill: "#475467", fontSize: 12 }} />
-              <Tooltip content={<CustomTooltip currency />} />
-              <Line
-                type="monotone"
-                dataKey="total_income"
-                stroke="#0e7490"
-                strokeWidth={3}
-                dot={{ fill: "#0e7490", r: 4 }}
-              />
-            </LineChart>
-          </ResponsiveContainer>
-        </ChartCard>
+      <section className="space-y-4">
+        <div>
+          <p className="eyebrow">Portfolio Intelligence</p>
+          <h3 className="mt-2 text-2xl font-semibold text-[var(--ink)]">
+            Useful findings surfaced from the same queries driving the app
+          </h3>
+        </div>
 
-        <div className="panel p-6">
-          <h3 className="text-lg font-semibold text-[var(--ink)]">Snapshot Stats</h3>
-          <div className="mt-6 space-y-4">
-            <div className="rounded-[22px] bg-white/80 p-4">
-              <p className="text-sm text-[var(--muted)]">Open maintenance requests</p>
-              <p className="mt-2 text-2xl font-bold text-[var(--ink)]">
-                {formatNumber(data.open_maintenance_requests)}
-              </p>
-            </div>
-            <div className="rounded-[22px] bg-white/80 p-4">
-              <p className="text-sm text-[var(--muted)]">Properties under maintenance</p>
-              <p className="mt-2 text-2xl font-bold text-[var(--ink)]">
-                {formatNumber(data.under_maintenance)}
-              </p>
-            </div>
-            <div className="rounded-[22px] bg-white/80 p-4">
-              <p className="text-sm text-[var(--muted)]">Average rent</p>
-              <p className="mt-2 text-2xl font-bold text-[var(--ink)]">
-                {formatCompactCurrency(data.avg_rent)}
-              </p>
-            </div>
-          </div>
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          {insights.map((insight) => (
+            <InsightCard key={`${insight.query_name}-${insight.result_count}`} insight={insight} />
+          ))}
         </div>
       </section>
     </div>
