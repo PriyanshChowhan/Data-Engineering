@@ -54,7 +54,7 @@ exports.runQuery = async (req, res, next) => {
 
 exports.getInsightQueries = async (req, res, next) => {
   try {
-    const insightQueryIds = ["Q1", "Q2", "Q8", "Q18", "Q19", "Q20", "Q9"];
+    const insightQueryIds = ["Q1", "Q2", "Q3", "Q4", "Q5", "Q6"];
     const insights = [];
 
     for (const queryId of insightQueryIds) {

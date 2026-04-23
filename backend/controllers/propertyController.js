@@ -1,6 +1,5 @@
 const mongoose = require("mongoose");
 const Property = require("../models/Property");
-const Rental = require("../models/Rental");
 
 const buildPagination = (page, limit, total) => ({
   page,
@@ -184,16 +183,9 @@ exports.getPropertyById = async (req, res, next) => {
       });
     }
 
-    const rentals = await Rental.find({ property_id: property.property_id })
-      .sort({ lease_start: -1 })
-      .lean();
-
     return res.json({
       success: true,
-      data: {
-        ...property,
-        rentals
-      }
+      data: property
     });
   } catch (error) {
     return next(error);

@@ -6,7 +6,6 @@ import "./index.css";
 
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const Properties = lazy(() => import("./pages/Properties"));
-const PropertyDetail = lazy(() => import("./pages/PropertyDetail"));
 const Search = lazy(() => import("./pages/Search"));
 
 ReactDOM.createRoot(document.getElementById("root")).render(
@@ -23,7 +22,6 @@ ReactDOM.createRoot(document.getElementById("root")).render(
           <Route path="/" element={<App />}>
             <Route index element={<Dashboard />} />
             <Route path="properties" element={<Properties />} />
-            <Route path="properties/:id" element={<PropertyDetail />} />
             <Route path="search" element={<Search />} />
           </Route>
         </Routes>

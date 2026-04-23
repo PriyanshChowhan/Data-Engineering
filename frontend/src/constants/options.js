@@ -12,7 +12,7 @@ export const cities = [
 ];
 
 export const propertyTypes = ["apartment", "villa", "plot", "commercial"];
-export const propertyStatuses = ["available", "rented", "under_maintenance", "sold"];
+export const propertyStatuses = ["available", "under_maintenance", "sold"];
 export const amenities = [
   "parking",
   "gym",

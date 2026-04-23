@@ -42,7 +42,7 @@ export const getStatusClasses = (status) => {
     return "bg-rose-100 text-rose-700";
   }
 
-  if (["expired", "rented", "open"].includes(normalized)) {
+  if (["expired", "open"].includes(normalized)) {
     return "bg-sky-100 text-sky-700";
   }
 

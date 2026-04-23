@@ -19,7 +19,7 @@ export default function App() {
                 Portfolio Overview
               </p>
               <h1 className="font-display text-2xl text-[var(--ink)]">
-                Real-Estate Investment & Rental Profitability Tracker
+                Real-Estate Investment Tracker
               </h1>
             </div>
 

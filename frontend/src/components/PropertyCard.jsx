@@ -1,4 +1,4 @@
-import { Bath, BedDouble, ChartLine, MapPin } from "lucide-react";
+import { BedDouble, ChartLine, MapPin } from "lucide-react";
 import { Link } from "react-router-dom";
 import { formatCompactCurrency, getStatusClasses } from "../utils/formatters";
 
@@ -53,23 +53,17 @@ export default function PropertyCard({ property, highlightText }) {
         </div>
       </div>
 
-      <div className="mt-5 grid grid-cols-3 gap-3 text-sm text-[var(--muted)]">
+      <div className="mt-5 grid grid-cols-2 gap-3 text-sm text-[var(--muted)]">
         <div className="panel-soft px-3 py-2">
           <div className="flex items-center gap-2">
             <BedDouble size={16} />
-            <span>{property.bedrooms}</span>
-          </div>
-        </div>
-        <div className="panel-soft px-3 py-2">
-          <div className="flex items-center gap-2">
-            <Bath size={16} />
-            <span>{property.bathrooms}</span>
+            <span>{property.bedrooms} beds</span>
           </div>
         </div>
         <div className="panel-soft px-3 py-2">
           <div className="flex items-center gap-2">
             <ChartLine size={16} />
-            <span>{property.investment_details.appreciation_percent}%</span>
+            <span>{property.investment_details.appreciation_percent}% growth</span>
           </div>
         </div>
       </div>

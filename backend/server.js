@@ -4,7 +4,6 @@ const express = require("express");
 const cors = require("cors");
 const connectDB = require("./config/db");
 const propertyRoutes = require("./routes/properties");
-const rentalRoutes = require("./routes/rentals");
 const dashboardRoutes = require("./routes/dashboard");
 const queryRoutes = require("./routes/queries");
 const { notFound, errorHandler } = require("./middleware/errorHandler");
@@ -27,7 +26,6 @@ app.get("/api/health", (req, res) => {
 });
 
 app.use("/api/properties", propertyRoutes);
-app.use("/api/rentals", rentalRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/queries", queryRoutes);
 

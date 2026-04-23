@@ -3,7 +3,6 @@ const mongoose = require("mongoose");
 const MonthlyDataSchema = new mongoose.Schema(
   {
     month: { type: Number, required: true, min: 1, max: 12 },
-    avg_price_per_sqft: { type: Number, required: true, min: 0 },
     avg_rent: { type: Number, required: true, min: 0 },
     transactions: { type: Number, required: true, min: 0 }
   },
