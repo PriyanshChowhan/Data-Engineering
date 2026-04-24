@@ -40,9 +40,7 @@ const queryCatalog = [
     $caseSensitive: false,
     $diacriticSensitive: false
   }
-},
-{ score: { $meta: "textScore" }, title: 1, "location.city": 1, price: 1 })
-.sort({ score: { $meta: "textScore" } })`,
+})`,
     async execute() {
       const filter = {
         $text: {
@@ -80,8 +78,7 @@ const queryCatalog = [
       transactions: { $gt: 65 }
     }
   }
-},
-{ city: 1, area: 1, property_type: 1, avg_yield_percent: 1 })`,
+})`,
     async execute() {
       const filter = {
         monthly_data: {
@@ -136,8 +133,7 @@ const queryCatalog = [
       transactions: { $gte: 70 }
     }
   }
-},
-{ city: 1, area: 1, property_type: 1, monthly_data: 1 })`,
+})`,
     async execute() {
       const filter = {
         monthly_data: {
